@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: build + unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.6'
+          cache: true
+      - name: gofmt
+        run: |
+          unformatted=$(gofmt -l $(git ls-files '*.go' | grep -v '^api/') )
+          if [ -n "$unformatted" ]; then
+            echo "these files need gofmt:"; echo "$unformatted"; exit 1
+          fi
+      - name: build
+        run: make build
+      - name: go vet
+        run: make govet
+      - name: unit tests
+        run: go test -mod=readonly -timeout 30m ./...
+
+  e2e:
+    name: 4-validator localnet E2E + security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.6'
+          cache: true
+      - name: install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: e2e
+        run: make test-e2e
+      - name: validator logs on failure
+        if: failure()
+        run: tail -n 200 localnet/logs/*.log || true

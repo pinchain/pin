@@ -135,9 +135,13 @@ lint-fix:
 ### Development ###
 ###################
 
+# generated protobuf code (api/) is excluded: protoc output trips vet's
+# unreachable-code check
+VET_PKGS := $(shell go list ./... | grep -v '/api/')
+
 govet:
 	@echo Running go vet...
-	@go vet ./...
+	@go vet $(VET_PKGS)
 
 govulncheck:
 	@echo Running govulncheck...
