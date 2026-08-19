@@ -1,0 +1,37 @@
+syntax = "proto3";
+package pinchain.pin;
+
+import "amino/amino.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/pinchain/pinchain/x/pin/types";
+
+// PINStatus is the lifecycle status of a PIN record.
+enum PINStatus {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  // PIN_STATUS_UNSPECIFIED is an invalid/unset status.
+  PIN_STATUS_UNSPECIFIED = 0;
+  // PIN_STATUS_ACTIVE means the PIN resolves to its owner and can receive funds.
+  PIN_STATUS_ACTIVE = 1;
+  // PIN_STATUS_REVOKED means the PIN no longer resolves for transfers.
+  PIN_STATUS_REVOKED = 2;
+}
+
+// PINRecord is the on-chain, consensus-critical mapping of a human readable PIN
+// to the account address that owns it. The PIN is an identifier only: it is
+// never a credential and grants no signing authority.
+message PINRecord {
+  option (amino.name) = "pinchain/x/pin/PINRecord";
+  option (gogoproto.equal) = true;
+
+  // pin is the canonical (uppercase, XXX-XXXX) PIN.
+  string pin = 1;
+  // owner is the bech32 account address the PIN resolves to.
+  string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // creation_height is the block height at which the PIN was registered.
+  int64 creation_height = 3;
+  // status is the PIN lifecycle status.
+  PINStatus status = 4;
+}

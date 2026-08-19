@@ -1,0 +1,15 @@
+syntax = "proto3";
+package pinchain.pin;
+
+import "amino/amino.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/pinchain/pinchain/x/pin/types";
+
+// Params defines the parameters for the module.
+message Params {
+  option (amino.name) = "pinchain/x/pin/Params";
+  option (gogoproto.equal) = true;
+
+  
+}

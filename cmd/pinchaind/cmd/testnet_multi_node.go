@@ -198,7 +198,7 @@ func initTestnetFiles(
 
 		nodeConfig.SetRoot(nodeDir)
 		nodeConfig.Moniker = nodeDirName
-		nodeConfig.RPC.ListenAddress = "tcp://0.0.0.0:" + args.ports[i] 
+		nodeConfig.RPC.ListenAddress = "tcp://0.0.0.0:" + args.ports[i]
 
 		var err error
 		if err := os.MkdirAll(filepath.Join(nodeDir, "config"), nodeDirPerm); err != nil {
