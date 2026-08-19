@@ -1,0 +1,24 @@
+syntax = "proto3";
+package pinchain.pin;
+
+import "amino/amino.proto";
+import "gogoproto/gogo.proto";
+import "pinchain/pin/params.proto";
+import "pinchain/pin/pin.proto";
+
+option go_package = "github.com/pinchain/pinchain/x/pin/types";
+
+// GenesisState defines the pin module's genesis state.
+message GenesisState {
+  // params defines all the parameters of the module.
+  Params params = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+
+  // pin_records are the PIN registrations present at genesis.
+  repeated PINRecord pin_records = 2 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+}

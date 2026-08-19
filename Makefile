@@ -51,13 +51,41 @@ test: govet govulncheck test-unit
 
 all: install
 
+BUILDDIR ?= $(CURDIR)/build
+
+build:
+	@echo "--> building $(APPNAME)d into $(BUILDDIR)"
+	@mkdir -p $(BUILDDIR)
+	@go build $(BUILD_FLAGS) -o $(BUILDDIR)/$(APPNAME)d ./cmd/$(APPNAME)d
+
 install:
 	@echo "--> ensure dependencies have not been modified"
 	@go mod verify
 	@echo "--> installing $(APPNAME)d"
 	@go install $(BUILD_FLAGS) -mod=readonly ./cmd/$(APPNAME)d
 
-.PHONY: all install
+.PHONY: all build install
+
+##################
+###  Localnet  ###
+##################
+
+localnet: build
+	@./scripts/localnet.sh start
+
+localnet-stop:
+	@./scripts/localnet.sh stop
+
+localnet-clean:
+	@./scripts/localnet.sh clean
+
+localnet-status:
+	@./scripts/localnet.sh status
+
+test-e2e: build
+	@go test -mod=readonly -v -timeout 30m -tags e2e ./tests/e2e/...
+
+.PHONY: localnet localnet-stop localnet-clean localnet-status test-e2e
 
 ##################
 ###  Protobuf  ###
@@ -107,9 +135,13 @@ lint-fix:
 ### Development ###
 ###################
 
+# generated protobuf code (api/) is excluded: protoc output trips vet's
+# unreachable-code check
+VET_PKGS := $(shell go list ./... | grep -v '/api/')
+
 govet:
 	@echo Running go vet...
-	@go vet ./...
+	@go vet $(VET_PKGS)
 
 govulncheck:
 	@echo Running govulncheck...

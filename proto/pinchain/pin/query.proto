@@ -1,0 +1,94 @@
+syntax = "proto3";
+package pinchain.pin;
+
+import "amino/amino.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "pinchain/pin/params.proto";
+import "pinchain/pin/pin.proto";
+
+option go_package = "github.com/pinchain/pinchain/x/pin/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Params queries the parameters of the module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/pinchain/pin/v1/params";
+  }
+
+  // PIN resolves a PIN to its on-chain record.
+  rpc PIN(QueryPINRequest) returns (QueryPINResponse) {
+    option (google.api.http).get = "/pinchain/pin/v1/pins/{pin}";
+  }
+
+  // PINsByOwner lists the PINs owned by an address.
+  rpc PINsByOwner(QueryPINsByOwnerRequest) returns (QueryPINsByOwnerResponse) {
+    option (google.api.http).get = "/pinchain/pin/v1/owners/{owner}/pins";
+  }
+
+  // PINs lists all registered PINs.
+  rpc PINs(QueryPINsRequest) returns (QueryPINsResponse) {
+    option (google.api.http).get = "/pinchain/pin/v1/pins";
+  }
+}
+
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  // params holds all the parameters of this module.
+  Params params = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+}
+
+// QueryPINRequest is the request type for Query/PIN.
+message QueryPINRequest {
+  // pin is the PIN to resolve; it is normalized before lookup.
+  string pin = 1;
+}
+
+// QueryPINResponse is the response type for Query/PIN.
+message QueryPINResponse {
+  // record is the resolved PIN record.
+  PINRecord record = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+}
+
+// QueryPINsByOwnerRequest is the request type for Query/PINsByOwner.
+message QueryPINsByOwnerRequest {
+  // owner is the bech32 account address to list PINs for.
+  string owner = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// QueryPINsByOwnerResponse is the response type for Query/PINsByOwner.
+message QueryPINsByOwnerResponse {
+  // records are the PIN records owned by the address.
+  repeated PINRecord records = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+}
+
+// QueryPINsRequest is the request type for Query/PINs.
+message QueryPINsRequest {
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+// QueryPINsResponse is the response type for Query/PINs.
+message QueryPINsResponse {
+  // records are the registered PIN records for this page.
+  repeated PINRecord records = 1 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
